@@ -110,17 +110,156 @@ type Preset = {
   config: Omit<ClaudeConfig, "apiKey">;
 };
 
-type PaygModelOption = {
+type ProviderModelOption = {
   id: string;
   name: string;
   description: string;
   badge: string;
+  brand?: string;
   contextTokens?: string;
   haikuModel?: string;
   subagentModel?: string;
 };
 
-const qwenPaygModels: PaygModelOption[] = [
+const qwenTokenPlanModels: ProviderModelOption[] = [
+  {
+    id: "qwen3.8-max-preview",
+    name: "Qwen3.8-Max Preview",
+    description: "当前默认 Token Plan 文本/推理模型，保留原有长上下文配置。",
+    badge: "default",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.7-max",
+  },
+  {
+    id: "qwen3.8-max",
+    name: "Qwen3.8-Max",
+    description: "Token Plan 千问旗舰文本与推理模型，适合复杂 Agent、编码和多模态理解任务。",
+    badge: "text",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.7-max",
+  },
+  {
+    id: "qwen3.7-plus",
+    name: "Qwen3.7-Plus",
+    description: "Token Plan 千问 Plus 文本与推理模型，适合日常开发和通用任务。",
+    badge: "text",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.7-plus",
+  },
+  {
+    id: "qwen3.7-max",
+    name: "Qwen3.7-Max",
+    description: "Token Plan 千问 Max 文本与推理模型，适合长任务和复杂代码理解。",
+    badge: "text",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.7-max",
+  },
+  {
+    id: "qwen3.6-flash",
+    name: "Qwen3.6-Flash",
+    description: "Token Plan 千问轻量快速模型，适合低成本 Haiku/Subagent 辅助任务。",
+    badge: "fast",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "qwen-audio-3.0-tts-plus",
+    name: "Qwen Audio 3.0 TTS Plus",
+    description: "Token Plan 实时语音合成模型；选择后仍会写入 Claude Code 模型环境变量，可在高级项手动调整映射。",
+    badge: "audio",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "qwen-audio-3.0-realtime-plus",
+    name: "Qwen Audio 3.0 Realtime Plus",
+    description: "Token Plan Realtime Chatting 模型；选择后仍会写入 Claude Code 模型环境变量，可在高级项手动调整映射。",
+    badge: "audio",
+    brand: "千问",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "wan2.7-image",
+    name: "Wan2.7 Image",
+    description: "Token Plan 图片生成模型；适合需要直接指定图片模型 ID 的自定义配置。",
+    badge: "image",
+    brand: "万相",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "wan2.7-image-pro",
+    name: "Wan2.7 Image Pro",
+    description: "Token Plan 图片生成 Pro 模型；适合需要直接指定图片模型 ID 的自定义配置。",
+    badge: "image",
+    brand: "万相",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "happyhorse-1.1-i2v",
+    name: "HappyHorse 1.1 I2V",
+    description: "Token Plan 图生视频模型；适合需要直接指定视频模型 ID 的自定义配置。",
+    badge: "video",
+    brand: "HappyHorse",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "happyhorse-1.1-t2v",
+    name: "HappyHorse 1.1 T2V",
+    description: "Token Plan 文生视频模型；适合需要直接指定视频模型 ID 的自定义配置。",
+    badge: "video",
+    brand: "HappyHorse",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "happyhorse-1.1-r2v",
+    name: "HappyHorse 1.1 R2V",
+    description: "Token Plan 参考视频生成模型；适合需要直接指定视频模型 ID 的自定义配置。",
+    badge: "video",
+    brand: "HappyHorse",
+    contextTokens: "983616",
+    subagentModel: "qwen3.6-flash",
+  },
+  {
+    id: "deepseek-v4-pro",
+    name: "DeepSeek V4 Pro",
+    description: "Token Plan DeepSeek 文本与推理模型，适合复杂推理和编码任务。",
+    badge: "text",
+    brand: "DeepSeek",
+    contextTokens: "983616",
+    subagentModel: "deepseek-v4-pro",
+  },
+  {
+    id: "deepseek-v4-flash-0731",
+    name: "DeepSeek V4 Flash 0731",
+    description: "Token Plan DeepSeek 快速文本与推理模型，适合低延迟辅助任务。",
+    badge: "text",
+    brand: "DeepSeek",
+    contextTokens: "983616",
+    subagentModel: "deepseek-v4-flash-0731",
+  },
+  {
+    id: "glm-5.2",
+    name: "GLM-5.2",
+    description: "Token Plan 智谱 GLM-5.2 文本与推理模型，适合规划、推理和复杂代码理解。",
+    badge: "text",
+    brand: "智谱AI",
+    contextTokens: "983616",
+    subagentModel: "glm-5.2",
+  },
+];
+
+const qwenPaygModels: ProviderModelOption[] = [
   {
     id: "ZHIPU/GLM-5.2",
     name: "ZHIPU/GLM-5.2",
@@ -295,6 +434,7 @@ const managedKeys = [
 
 function App() {
   const [selectedPreset, setSelectedPreset] = useState<PresetId>("deepseek");
+  const [selectedTokenPlanModelId, setSelectedTokenPlanModelId] = useState("qwen3.8-max-preview");
   const [selectedPaygModelId, setSelectedPaygModelId] = useState("qwen3.7-max");
   const [config, setConfig] = useState<ClaudeConfig>({
     ...presets[0].config,
@@ -342,6 +482,10 @@ function App() {
     qwenPaygModels.find((model) => model.id === config.model) ??
     qwenPaygModels.find((model) => model.id === "qwen3.7-max") ??
     qwenPaygModels[0];
+  const selectedTokenPlanModel =
+    qwenTokenPlanModels.find((model) => model.id === config.model) ??
+    qwenTokenPlanModels.find((model) => model.id === "qwen3.8-max-preview") ??
+    qwenTokenPlanModels[0];
 
   const previewEnv = useMemo(() => {
     const env: Record<string, string> = {
@@ -379,7 +523,9 @@ function App() {
   function selectPreset(preset: Preset) {
     setSelectedPreset(preset.id);
     const nextConfig =
-      preset.id === "qwen-payg"
+      preset.id === "qwen-token-plan"
+        ? configWithTokenPlanModel(preset.config, selectedTokenPlanModelId)
+        : preset.id === "qwen-payg"
         ? configWithPaygModel(preset.config, selectedPaygModelId)
         : preset.config;
     setConfig({
@@ -407,6 +553,16 @@ function App() {
     }
     setSelectedPaygModelId(option.id);
     setConfig(configWithPaygModel(config, option.id));
+    clearMessages();
+  }
+
+  function applyTokenPlanModel(modelId: string) {
+    const option = qwenTokenPlanModels.find((model) => model.id === modelId);
+    if (!option) {
+      return;
+    }
+    setSelectedTokenPlanModelId(option.id);
+    setConfig(configWithTokenPlanModel(config, option.id));
     clearMessages();
   }
 
@@ -745,6 +901,28 @@ function App() {
             </div>
           )}
 
+          {selectedPreset === "qwen-token-plan" && (
+            <label className="field model-picker">
+              <span>Token Plan 模型</span>
+              <select value={config.model} onChange={(event) => applyTokenPlanModel(event.target.value)}>
+                {Array.from(new Set(qwenTokenPlanModels.map((model) => model.brand ?? "其它"))).map((brand) => (
+                  <optgroup key={brand} label={brand}>
+                    {qwenTokenPlanModels
+                      .filter((model) => (model.brand ?? "其它") === brand)
+                      .map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.name} · {model.id}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
+              </select>
+              <small className="field-hint">
+                {selectedTokenPlanModel.description} 已同步到主模型、Sonnet、Opus 和 Subagent 映射；默认仍为 qwen3.8-max-preview。
+              </small>
+            </label>
+          )}
+
           {selectedPreset === "qwen-payg" && (
             <label className="field model-picker">
               <span>按量计费模型</span>
@@ -914,6 +1092,22 @@ function configWithPaygModel<T extends Omit<ClaudeConfig, "apiKey"> | ClaudeConf
     subagentModel: option.subagentModel ?? option.id,
     haikuModel: option.haikuModel ?? "qwen3.6-flash",
     maxContextTokens: option.contextTokens ?? "",
+  } as T;
+}
+
+function configWithTokenPlanModel<T extends Omit<ClaudeConfig, "apiKey"> | ClaudeConfig>(config: T, modelId: string): T {
+  const option =
+    qwenTokenPlanModels.find((model) => model.id === modelId) ??
+    qwenTokenPlanModels.find((model) => model.id === "qwen3.8-max-preview") ??
+    qwenTokenPlanModels[0];
+  return {
+    ...config,
+    model: option.id,
+    sonnetModel: option.id,
+    opusModel: option.id,
+    subagentModel: option.subagentModel ?? option.id,
+    haikuModel: option.haikuModel ?? "qwen3.6-flash",
+    maxContextTokens: option.contextTokens ?? "983616",
   } as T;
 }
 
