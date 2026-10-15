@@ -738,7 +738,7 @@ fn infer_preset_id(base_url: &str, model: &str) -> Option<&'static str> {
         Some("deepseek")
     } else if base_url.contains("api.x.ai") || model.starts_with("grok") {
         Some("xai-grok")
-    } else if base_url.contains("aicoding.0011.ai") {
+    } else if base_url.contains("aicoding.0011.ai") || base_url.contains("api.3366.ai") {
         Some("aicoding-0011")
     } else if base_url.contains("api.claudecode.uk") {
         Some("claudecode-uk")
@@ -963,7 +963,7 @@ fn detect_provider(base_url: &str) -> String {
         "DeepSeek".to_string()
     } else if base_url.contains("api.x.ai") {
         "xAI Grok".to_string()
-    } else if base_url.contains("aicoding.0011.ai") {
+    } else if base_url.contains("aicoding.0011.ai") || base_url.contains("api.3366.ai") {
         "0011 Claude".to_string()
     } else if base_url.contains("api.claudecode.uk") {
         "ClaudeCode UK".to_string()

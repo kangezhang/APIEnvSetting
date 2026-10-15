@@ -121,6 +121,29 @@ type ProviderModelOption = {
   subagentModel?: string;
 };
 
+// Official model IDs verified on 2026-10-15. Provider availability is separate.
+const latestClaudeModels = {
+  sonnet: "claude-sonnet-5-5",
+  opus: "claude-opus-5-5",
+  haiku: "claude-haiku-5-5",
+};
+const latestClaudeModelOptions = [
+  { id: latestClaudeModels.sonnet, name: "Claude Sonnet 5.5" },
+  { id: latestClaudeModels.opus, name: "Claude Opus 5.5" },
+  { id: latestClaudeModels.haiku, name: "Claude Haiku 5.5" },
+];
+// Returned by ClaudeCode UK's authenticated /v1/models on 2026-10-15.
+const listedUkClaudeModels = {
+  sonnet: "claude-sonnet-4-5-20250929",
+  opus: "claude-opus-4-5-20251101",
+  haiku: "claude-haiku-4-5-20251001",
+};
+const listedUkClaudeModelOptions = [
+  { id: listedUkClaudeModels.sonnet, name: "Claude Sonnet 4.5" },
+  { id: listedUkClaudeModels.opus, name: "Claude Opus 4.5" },
+  { id: listedUkClaudeModels.haiku, name: "Claude Haiku 4.5" },
+];
+
 const qwenTokenPlanModels: ProviderModelOption[] = [
   {
     id: "qwen3.8-max-preview",
@@ -350,16 +373,16 @@ const presets: Preset[] = [
     title: "0011 Claude",
     subtitle: "Custom Claude API",
     badge: "default",
-    note: "Use the third-party Claude-compatible endpoint at https://aicoding.0011.ai. This preset follows the provider setup guide and lets 0011 route the model instead of forcing an explicit model ID.",
+    note: "使用 0011 最新指南中的 api.3366.ai 入口。默认自动路由；可显式选择 Claude 5.5，接入情况以服务商为准。",
     config: {
       provider: "0011",
       plan: "Custom Claude API",
-      baseUrl: "https://aicoding.0011.ai",
-      model: "claude-sonnet-5",
-      haikuModel: "claude-haiku-4-5",
-      sonnetModel: "claude-sonnet-5",
-      opusModel: "claude-opus-4-8",
-      subagentModel: "claude-haiku-4-5",
+      baseUrl: "https://api.3366.ai",
+      model: latestClaudeModels.sonnet,
+      haikuModel: latestClaudeModels.haiku,
+      sonnetModel: latestClaudeModels.sonnet,
+      opusModel: latestClaudeModels.opus,
+      subagentModel: latestClaudeModels.haiku,
       includeApiKeyEnv: true,
       includeModelEnv: false,
     },
@@ -369,16 +392,16 @@ const presets: Preset[] = [
     title: "ClaudeCode UK",
     subtitle: "Card key Claude API",
     badge: "default",
-    note: "Use the claudecode.uk card-key provider. The provider guide uses https://api.claudecode.uk with ANTHROPIC_AUTH_TOKEN only, so this preset does not force model variables.",
+    note: "使用 ClaudeCode UK 卡密入口，默认自动路由。2026-10-15 查询的目录仅列到 Claude 4.5，Claude 5.5 接入尚未确认。",
     config: {
       provider: "ClaudeCode UK",
       plan: "Card Key",
       baseUrl: "https://api.claudecode.uk",
-      model: "sonnet",
-      haikuModel: "haiku",
-      sonnetModel: "sonnet",
-      opusModel: "opus",
-      subagentModel: "haiku",
+      model: latestClaudeModels.sonnet,
+      haikuModel: latestClaudeModels.haiku,
+      sonnetModel: latestClaudeModels.sonnet,
+      opusModel: latestClaudeModels.opus,
+      subagentModel: latestClaudeModels.haiku,
       includeModelEnv: false,
     },
   },
@@ -477,6 +500,10 @@ function App() {
     [selectedPreset],
   );
   const selectedKeyStatus = apiKeyStatuses[selectedPreset];
+  const isClaudePreset = selectedPreset === "aicoding-0011" || selectedPreset === "claudecode-uk";
+  const claudeModelOptions = selectedPreset === "claudecode-uk"
+    ? [...latestClaudeModelOptions, ...listedUkClaudeModelOptions]
+    : latestClaudeModelOptions;
   const hasDraftKey = config.apiKey.trim().length > 0;
   const selectedPaygModel =
     qwenPaygModels.find((model) => model.id === config.model) ??
@@ -544,6 +571,22 @@ function App() {
       [selectedPreset]: apiKey,
     });
     setDeepSeekBalance(null);
+  }
+
+  function applyClaudeModel(modelId: string) {
+    const models = listedUkClaudeModelOptions.some((model) => model.id === modelId)
+      ? listedUkClaudeModels
+      : latestClaudeModels;
+    setConfig({
+      ...config,
+      model: modelId || latestClaudeModels.sonnet,
+      haikuModel: models.haiku,
+      sonnetModel: models.sonnet,
+      opusModel: models.opus,
+      subagentModel: models.haiku,
+      includeModelEnv: modelId !== "",
+    });
+    clearMessages();
   }
 
   function applyPaygModel(modelId: string) {
@@ -941,7 +984,35 @@ function App() {
 
           <div className="field-grid">
             <TextField label="Base URL" value={config.baseUrl} onChange={(baseUrl) => setConfig({ ...config, baseUrl })} />
-            <TextField label="主模型" value={config.model} onChange={(model) => setConfig({ ...config, model })} />
+            {isClaudePreset ? (
+              <label className="field">
+                <span>主模型</span>
+                <select
+                  value={config.includeModelEnv === false ? "" : config.model}
+                  onChange={(event) => applyClaudeModel(event.target.value)}
+                  title="自动路由不写入模型变量；选择具体模型后写入主模型及对应系列映射。官方最新名称不代表服务商已接入；自定义 ID 可在高级项填写。"
+                >
+                  <option value="">服务商默认（自动路由）</option>
+                  <optgroup label="官方最新 · 服务商接入待确认">
+                    {latestClaudeModelOptions.map((model) => (
+                      <option key={model.id} value={model.id}>{model.name} · {model.id}</option>
+                    ))}
+                  </optgroup>
+                  {selectedPreset === "claudecode-uk" && (
+                    <optgroup label="服务商目录 · 2026-10-15">
+                      {listedUkClaudeModelOptions.map((model) => (
+                        <option key={model.id} value={model.id}>{model.name} · {model.id}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {!claudeModelOptions.some((model) => model.id === config.model) && (
+                    <option value={config.model}>自定义 · {config.model}</option>
+                  )}
+                </select>
+              </label>
+            ) : (
+              <TextField label="主模型" value={config.model} onChange={(model) => setConfig({ ...config, model })} />
+            )}
           </div>
 
           <button className="advanced-toggle" type="button" onClick={() => setShowAdvanced(!showAdvanced)} title="展开或收起模型映射">
@@ -952,12 +1023,15 @@ function App() {
 
           {showAdvanced && (
             <div className="advanced-grid">
-              <TextField label="Haiku 默认模型" value={config.haikuModel} onChange={(haikuModel) => setConfig({ ...config, haikuModel })} />
-              <TextField label="Sonnet 默认模型" value={config.sonnetModel} onChange={(sonnetModel) => setConfig({ ...config, sonnetModel })} />
-              <TextField label="Opus 默认模型" value={config.opusModel} onChange={(opusModel) => setConfig({ ...config, opusModel })} />
-              <TextField label="Subagent 模型" value={config.subagentModel} onChange={(subagentModel) => setConfig({ ...config, subagentModel })} />
-              <TextField label="最大上下文 Token" value={config.maxContextTokens ?? ""} onChange={(maxContextTokens) => setConfig({ ...config, maxContextTokens })} />
-              <TextField label="Effort Level" value={config.effortLevel ?? ""} onChange={(effortLevel) => setConfig({ ...config, effortLevel })} />
+              {isClaudePreset && (
+                <TextField label="自定义主模型" value={config.model} onChange={(model) => setConfig({ ...config, model, includeModelEnv: true })} />
+              )}
+              <TextField label="Haiku 默认模型" value={config.haikuModel} disabled={config.includeModelEnv === false} onChange={(haikuModel) => setConfig({ ...config, haikuModel })} />
+              <TextField label="Sonnet 默认模型" value={config.sonnetModel} disabled={config.includeModelEnv === false} onChange={(sonnetModel) => setConfig({ ...config, sonnetModel })} />
+              <TextField label="Opus 默认模型" value={config.opusModel} disabled={config.includeModelEnv === false} onChange={(opusModel) => setConfig({ ...config, opusModel })} />
+              <TextField label="Subagent 模型" value={config.subagentModel} disabled={config.includeModelEnv === false} onChange={(subagentModel) => setConfig({ ...config, subagentModel })} />
+              <TextField label="最大上下文 Token" value={config.maxContextTokens ?? ""} disabled={config.includeModelEnv === false} onChange={(maxContextTokens) => setConfig({ ...config, maxContextTokens })} />
+              <TextField label="Effort Level" value={config.effortLevel ?? ""} disabled={config.includeModelEnv === false} onChange={(effortLevel) => setConfig({ ...config, effortLevel })} />
             </div>
           )}
 
@@ -1021,11 +1095,11 @@ function App() {
   );
 }
 
-function TextField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function TextField({ label, value, onChange, disabled = false }: { label: string; value: string; onChange: (value: string) => void; disabled?: boolean }) {
   return (
     <label className="field">
       <span>{label}</span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} />
+      <input value={value} disabled={disabled} title={disabled ? "选择具体主模型后启用模型映射" : undefined} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
 }
